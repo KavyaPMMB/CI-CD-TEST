@@ -9,6 +9,14 @@ jobs:
   backend-tests:
     name: Backend Mocha Tests
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      MONGODB_URI_TEST: mongodb://127.0.0.1:27017/mern_todos_test
+      JWT_SECRET: ci-test-secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,6 +57,14 @@ jobs:
   selenium-e2e:
     name: Selenium E2E
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/mern_todos_ci
+      JWT_SECRET: ci-test-secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,6 +87,14 @@ jobs:
   load-test:
     name: Load Test
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/mern_todos_ci
+      JWT_SECRET: ci-test-secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4
