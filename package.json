@@ -1,0 +1,19 @@
+{
+  "name": "mern-todo-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:backend": "npm --prefix backend test",
+    "build:frontend": "npm --prefix frontend run build",
+    "test:e2e": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"npm --prefix backend start\" http://localhost:5000/health \"npm --prefix frontend run dev -- --host\" http://localhost:5173 \"node ./tests/e2e/selenium.test.js\"",
+    "test:load": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"npm --prefix backend start\" http://localhost:5000/health \"node ./tests/load/load-test.js\"",
+    "test:all": "npm run test:backend && npm run build:frontend && npm run test:e2e && npm run test:load"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0",
+    "chromedriver": "^147.0.4",
+    "selenium-webdriver": "^4.43.0",
+    "start-server-and-test": "^2.0.4",
+    "wait-on": "^9.0.5"
+  }
+}
