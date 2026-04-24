@@ -13,8 +13,11 @@ function getStoredTheme() {
 
 export default function App() {
   const [theme, setTheme] = useState(getStoredTheme);
-  const [token, setToken] = useState("");
-  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token") || "");
+  const [user, setUser] = useState(() => {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -22,6 +25,17 @@ export default function App() {
     else root.classList.remove("dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    setAuthToken(token);
+    if (token) localStorage.setItem("token", token);
+    else localStorage.removeItem("token");
+  }, [token]);
+
+  useEffect(() => {
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    else localStorage.removeItem("user");
+  }, [user]);
 
   useEffect(() => {
     if (!hasSupabaseConfig || !supabase) return;
@@ -70,8 +84,26 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (hasSupabaseConfig || !token || user) return;
+    api
+      .get("/auth/me")
+      .then(({ data }) => setUser(data))
+      .catch(() => {
+        setToken("");
+        setUser(null);
+      });
+  }, [token, user]);
+
+  const handleAuthenticated = ({ token: nextToken, user: nextUser }) => {
+    setToken(nextToken);
+    setUser(nextUser);
+  };
+
   const logout = () => {
     if (supabase) supabase.auth.signOut();
+    setToken("");
+    setUser(null);
     setAuthToken("");
   };
 
@@ -87,7 +119,7 @@ export default function App() {
             onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
           />
         ) : (
-          <AuthCard />
+          <AuthCard onAuthenticated={handleAuthenticated} />
         )}
       </div>
       <Toaster richColors closeButton position="top-center" theme={theme} />

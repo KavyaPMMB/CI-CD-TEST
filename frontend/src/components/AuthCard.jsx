@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "../api/client.js";
 import { hasSupabaseConfig, supabase } from "../lib/supabase.js";
 
-export function AuthCard() {
+export function AuthCard({ onAuthenticated }) {
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,7 +19,11 @@ export function AuthCard() {
     setSubmitting(true);
     try {
       if (!hasSupabaseConfig || !supabase) {
-        toast.error("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
+        const endpoint = isRegister ? "/auth/register" : "/auth/login";
+        const payload = isRegister ? { name, email, password } : { email, password };
+        const { data } = await api.post(endpoint, payload);
+        onAuthenticated?.(data);
+        toast.success(isRegister ? "Account created (backend auth mode)" : "Welcome back");
         return;
       }
 
@@ -58,8 +63,7 @@ export function AuthCard() {
         </p>
         {!hasSupabaseConfig && (
           <p className="mt-2 rounded-xl border border-amber-300/40 bg-amber-100/70 px-3 py-2 text-xs text-amber-800 dark:border-amber-300/20 dark:bg-amber-500/10 dark:text-amber-200">
-            Missing Supabase env setup. Add <code>VITE_SUPABASE_URL</code> and{" "}
-            <code>VITE_SUPABASE_ANON_KEY</code> in <code>frontend/.env</code>.
+            Supabase env is missing, so this app is using backend JWT auth fallback mode.
           </p>
         )}
 
