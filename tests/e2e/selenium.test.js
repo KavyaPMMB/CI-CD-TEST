@@ -25,8 +25,34 @@ async function run() {
       .sendKeys("secret123", Key.TAB);
 
     await driver.findElement(By.css('[data-testid="auth-submit-button"]')).click();
+    let todoReady = false;
+    try {
+      await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 8000);
+      todoReady = true;
+    } catch {
+      // Some auth providers create account without immediate sign-in.
+      // Fallback: try logging in with the same credentials.
+      const maybeToggle = await driver.findElements(By.css('[data-testid="auth-toggle-button"]'));
+      if (maybeToggle.length > 0) {
+        const toggleText = await maybeToggle[0].getText();
+        if (toggleText.toLowerCase().includes("already have")) {
+          await maybeToggle[0].click();
+        }
+      }
+      const emailInput = await driver.findElement(By.css('[data-testid="auth-email-input"]'));
+      await emailInput.clear();
+      await emailInput.sendKeys(email);
+      const passwordInput = await driver.findElement(By.css('[data-testid="auth-password-input"]'));
+      await passwordInput.clear();
+      await passwordInput.sendKeys("secret123");
+      await driver.findElement(By.css('[data-testid="auth-submit-button"]')).click();
+      await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 25000);
+      todoReady = true;
+    }
 
-    await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 20000);
+    if (!todoReady) {
+      throw new Error("Could not reach todo screen after signup/login");
+    }
     const todoInput = await driver.findElement(By.css('[data-testid="todo-input"]'));
     await todoInput.sendKeys("E2E task");
     await driver.findElement(By.css('[data-testid="add-todo-button"]')).click();
