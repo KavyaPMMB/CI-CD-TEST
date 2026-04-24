@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "../api/client.js";
+import { hasSupabaseConfig, supabase } from "../lib/supabase.js";
 
-export function AuthCard({ onAuthenticated }) {
+export function AuthCard() {
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,13 +17,26 @@ export function AuthCard({ onAuthenticated }) {
     if (submitting) return;
     setSubmitting(true);
     try {
-      const endpoint = isRegister ? "/auth/register" : "/auth/login";
-      const payload = isRegister ? { name, email, password } : { email, password };
-      const { data } = await api.post(endpoint, payload);
-      onAuthenticated(data);
-      toast.success(isRegister ? "Account created" : "Welcome back");
+      if (!hasSupabaseConfig || !supabase) {
+        toast.error("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
+        return;
+      }
+
+      if (isRegister) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name } },
+        });
+        if (error) throw error;
+        toast.success("Account created. Check email if confirmation is enabled.");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast.success("Welcome back");
+      }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Authentication failed");
+      toast.error(err.message || "Authentication failed");
     } finally {
       setSubmitting(false);
     }
@@ -43,6 +56,12 @@ export function AuthCard({ onAuthenticated }) {
             ? "Register a demo account and start managing tasks."
             : "Use your account to access your personal todo list."}
         </p>
+        {!hasSupabaseConfig && (
+          <p className="mt-2 rounded-xl border border-amber-300/40 bg-amber-100/70 px-3 py-2 text-xs text-amber-800 dark:border-amber-300/20 dark:bg-amber-500/10 dark:text-amber-200">
+            Missing Supabase env setup. Add <code>VITE_SUPABASE_URL</code> and{" "}
+            <code>VITE_SUPABASE_ANON_KEY</code> in <code>frontend/.env</code>.
+          </p>
+        )}
 
         <form onSubmit={submit} className="mt-6 space-y-3">
           {isRegister && (

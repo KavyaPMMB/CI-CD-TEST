@@ -64,8 +64,16 @@ export async function login(req, res) {
 export async function me(req, res) {
   try {
     const user = await User.findById(req.userId).select("_id name email").lean();
-    if (!user) return res.status(404).json({ message: "User not found" });
-    return res.json({ id: user._id, name: user.name, email: user.email });
+    if (user) return res.json({ id: user._id, name: user.name, email: user.email });
+
+    return res.json({
+      id: req.authClaims?.sub || req.userId,
+      email: req.authClaims?.email || null,
+      name:
+        req.authClaims?.user_metadata?.name ||
+        req.authClaims?.user_metadata?.full_name ||
+        null,
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message || "Could not fetch profile" });
   }

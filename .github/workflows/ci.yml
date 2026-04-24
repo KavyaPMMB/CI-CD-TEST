@@ -108,8 +108,25 @@ jobs:
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
-      - name: Run load test
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: "0.55.0"
+      - name: Run load test (Grafana Cloud)
+        if: ${{ secrets.K6_CLOUD_TOKEN != '' }}
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+        run: npm run test:load:cloud
+      - name: Run load test (Local fallback)
+        if: ${{ secrets.K6_CLOUD_TOKEN == '' }}
         run: npm run test:load
+      - name: Upload k6 summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-summary
+          path: k6-summary.json
+          if-no-files-found: ignore
 
   deploy:
     name: Deploy

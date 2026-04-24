@@ -4,6 +4,7 @@ import { api, setAuthToken } from "./api/client.js";
 import { AuthCard } from "./components/AuthCard.jsx";
 import { ParticlesBackground } from "./components/ParticlesBackground.jsx";
 import { TodoApp } from "./components/TodoApp.jsx";
+import { hasSupabaseConfig, supabase } from "./lib/supabase.js";
 
 function getStoredTheme() {
   if (typeof window === "undefined") return "light";
@@ -12,11 +13,8 @@ function getStoredTheme() {
 
 export default function App() {
   const [theme, setTheme] = useState(getStoredTheme);
-  const [token, setToken] = useState(() => localStorage.getItem("token") || "");
-  const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  });
+  const [token, setToken] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -26,35 +24,55 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-    setAuthToken(token);
-    if (token) localStorage.setItem("token", token);
-    else localStorage.removeItem("token");
-  }, [token]);
+    if (!hasSupabaseConfig || !supabase) return;
+    let alive = true;
 
-  useEffect(() => {
-    if (user) localStorage.setItem("user", JSON.stringify(user));
-    else localStorage.removeItem("user");
-  }, [user]);
-
-  useEffect(() => {
-    if (!token || user) return;
-    api
-      .get("/auth/me")
-      .then(({ data }) => setUser(data))
-      .catch(() => {
+    const bootstrap = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!alive) return;
+      if (error || !data.session) {
         setToken("");
         setUser(null);
+        setAuthToken("");
+        return;
+      }
+      const session = data.session;
+      setToken(session.access_token);
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || null,
       });
-  }, [token, user]);
+      setAuthToken(session.access_token);
+    };
 
-  const handleAuthenticated = ({ token: nextToken, user: nextUser }) => {
-    setToken(nextToken);
-    setUser(nextUser);
-  };
+    bootstrap();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setToken("");
+        setUser(null);
+        setAuthToken("");
+        return;
+      }
+      setToken(session.access_token);
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || null,
+      });
+      setAuthToken(session.access_token);
+    });
+
+    return () => {
+      alive = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const logout = () => {
-    setToken("");
-    setUser(null);
+    if (supabase) supabase.auth.signOut();
+    setAuthToken("");
   };
 
   return (
@@ -69,7 +87,7 @@ export default function App() {
             onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
           />
         ) : (
-          <AuthCard onAuthenticated={handleAuthenticated} />
+          <AuthCard />
         )}
       </div>
       <Toaster richColors closeButton position="top-center" theme={theme} />
