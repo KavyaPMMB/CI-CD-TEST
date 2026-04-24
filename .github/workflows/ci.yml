@@ -95,6 +95,7 @@ jobs:
     env:
       MONGODB_URI: mongodb://127.0.0.1:27017/mern_todos_ci
       JWT_SECRET: ci-test-secret
+      K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -113,12 +114,10 @@ jobs:
         with:
           k6-version: "0.55.0"
       - name: Run load test (Grafana Cloud)
-        if: ${{ secrets.K6_CLOUD_TOKEN != '' }}
-        env:
-          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+        if: ${{ env.K6_CLOUD_TOKEN != '' }}
         run: npm run test:load:cloud
       - name: Run load test (Local fallback)
-        if: ${{ secrets.K6_CLOUD_TOKEN == '' }}
+        if: ${{ env.K6_CLOUD_TOKEN == '' }}
         run: npm run test:load
       - name: Upload k6 summary
         if: always()
