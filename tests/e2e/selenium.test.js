@@ -15,6 +15,10 @@ async function run() {
   const taskTwo = `E2E task two ${runId}`;
 
   try {
+    const stepPassed = (message) => {
+      console.log(`[PASS] ${message}`);
+    };
+
     const safeClick = async (element) => {
       await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
       try {
@@ -27,12 +31,14 @@ async function run() {
     await driver.get("http://localhost:5173");
     await driver.executeScript("window.localStorage.clear(); window.sessionStorage.clear();");
     await driver.navigate().refresh();
+    stepPassed("app opened and browser storage reset");
     // Login-only flow: test uses a pre-created account.
     const maybeToggle = await driver.findElements(By.css('[data-testid="auth-toggle-button"]'));
     if (maybeToggle.length > 0) {
       const toggleText = await maybeToggle[0].getText();
       if (toggleText.toLowerCase().includes("already have")) {
         await safeClick(maybeToggle[0]);
+        stepPassed("switched auth form to login mode");
       }
     }
 
@@ -49,11 +55,13 @@ async function run() {
     };
 
     await tryLogin(email);
+    stepPassed("login request submitted");
 
     let authenticated = false;
     try {
       await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 8000);
       authenticated = true;
+      stepPassed("login passed");
     } catch {
       authenticated = false;
     }
@@ -78,11 +86,13 @@ async function run() {
       const registerSubmitBtn = await driver.findElement(By.css('[data-testid="auth-submit-button"]'));
       await safeClick(registerSubmitBtn);
       await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 25000);
+      stepPassed(`register passed (${fallbackRegisterEmail})`);
     }
 
     // Ensure deterministic starting context.
     const allFilterBtn = await driver.findElement(By.xpath("//button[.//span[contains(.,'All')]]"));
     await safeClick(allFilterBtn);
+    stepPassed("all filter selected");
 
     const addTask = async (title) => {
       const taskXPath = By.xpath(`//*[contains(text(),'${title}')]`);
@@ -110,7 +120,9 @@ async function run() {
     };
 
     await addTask(taskOne);
+    stepPassed(`add passed (${taskOne})`);
     await addTask(taskTwo);
+    stepPassed(`add passed (${taskTwo})`);
 
     // Mark the specific task complete using its own row action.
     const taskOneRowToggle = await driver.findElement(
@@ -119,6 +131,7 @@ async function run() {
       )
     );
     await safeClick(taskOneRowToggle);
+    stepPassed(`mark complete passed (${taskOne})`);
 
     // Open "Completed" filter and verify completed task is visible there.
     const completedFilterBtn = await driver.findElement(
@@ -126,11 +139,13 @@ async function run() {
     );
     await safeClick(completedFilterBtn);
     await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskOne}')]`)), 15000);
+    stepPassed("completed filter passed");
 
     // Switch to "Pending" and ensure second task remains visible.
     const pendingFilterBtn = await driver.findElement(By.xpath("//button[.//span[contains(.,'Pending')]]"));
     await safeClick(pendingFilterBtn);
     await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskTwo}')]`)), 15000);
+    stepPassed("pending filter passed");
 
     // Back to all tasks and delete one task.
     const allFilterBtnAgain = await driver.findElement(By.xpath("//button[.//span[contains(.,'All')]]"));
@@ -142,13 +157,16 @@ async function run() {
       )
     );
     await safeClick(taskTwoDeleteButton);
+    stepPassed(`delete passed (${taskTwo})`);
 
     // Confirm at least one e2e task still exists after delete action.
     await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskOne}')]`)), 20000);
+    stepPassed(`post-delete verification passed (${taskOne} still present)`);
 
     const logoutButton = await driver.findElement(By.css('[data-testid="logout-button"]'));
     await safeClick(logoutButton);
     await driver.wait(until.elementLocated(By.css('[data-testid="auth-submit-button"]')), 10000);
+    stepPassed("logout passed");
 
     console.log("Selenium E2E passed");
   } finally {
