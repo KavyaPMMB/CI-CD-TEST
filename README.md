@@ -1,4 +1,4 @@
-# MERN Todo Demo (Supabase Auth)
+# Skynetclouds Todos (Supabase Auth)
 
 A modern full-stack Todo app built with:
 - MongoDB + Mongoose
@@ -21,6 +21,48 @@ A modern full-stack Todo app built with:
 
 - `backend/` Express API + MongoDB models/routes/controllers
 - `frontend/` React Vite UI
+
+## Credentials and Environment Variables
+
+Use these keys in local `.env` files and keep real secrets out of git.
+
+### Backend (`backend/.env`)
+
+```bash
+PORT=5000
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<db>?retryWrites=true&w=majority&appName=<app-name>
+
+# Local JWT fallback mode (used when SUPABASE_URL is empty)
+JWT_SECRET=<strong-random-secret>
+JWT_EXPIRES_IN=7d
+
+# Supabase verification mode (recommended for production)
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_JWT_AUD=authenticated
+```
+
+### Frontend (`frontend/.env`)
+
+```bash
+# Optional. Keep empty to use Vite proxy in local dev.
+VITE_API_URL=
+
+# Required for Supabase signup/login UI
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<supabase-anon-key>
+```
+
+### Test-only variables
+
+```bash
+MONGODB_URI_TEST=mongodb://127.0.0.1:27017/mern_todos_test
+E2E_EMAIL=<existing-test-user-email>
+E2E_PASSWORD=<existing-test-user-password>
+```
+
+### GitHub Actions secret
+
+- `K6_CLOUD_TOKEN` for Grafana Cloud k6 visualization
 
 ## Backend Setup
 
@@ -87,8 +129,8 @@ npm run test:e2e
 Starts backend and frontend, runs a headless Chrome Selenium flow (login -> add todo -> logout), then shuts down servers.
 
 By default the test logs in with:
-- `e2e.user@example.com`
-- `secret123`
+- `kavyapmmb1@gmail.com`
+- `Kavya@123`
 
 Override via environment variables when needed:
 
@@ -149,6 +191,17 @@ npm run test:all
 
 This executes backend tests, frontend build, Selenium E2E, and load tests in sequence.
 
+## In-App Visual Reports
+
+Inside the app, click `Reports` to view:
+
+- Backend Mocha status from `tests/results/backend-report.json`
+- Selenium E2E status and step logs from `tests/results/selenium-report.json`
+- k6 summary metrics from `k6-summary.json`
+- k6 HTML preview/full-page view from `k6-report.html` (when generated)
+
+Use the refresh icon in the modal to fetch latest test output.
+
 ## CI/CD Pipeline
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
@@ -161,3 +214,34 @@ Pipeline stages:
 - Deploy job gated on all checks
 
 The deploy step is intentionally a placeholder command so you can plug in your actual hosting provider deployment command
+
+## Environment Variables 
+
+### Backend
+
+- `PORT` - backend server port (default `5000`)
+- `MONGODB_URI` - MongoDB connection string for app data
+- `JWT_SECRET` - secret for local JWT fallback auth mode
+- `JWT_EXPIRES_IN` - token expiry in fallback mode (example: `7d`)
+- `SUPABASE_URL` - Supabase project URL used for JWT verification
+- `SUPABASE_JWT_AUD` - expected Supabase JWT audience (usually `authenticated`)
+
+### Frontend
+
+- `VITE_API_URL` - optional API base URL (leave empty in local dev to use proxy)
+- `VITE_SUPABASE_URL` - Supabase project URL for frontend auth client
+- `VITE_SUPABASE_ANON_KEY` - Supabase anon key for frontend auth client
+- `VITE_FORCE_BACKEND_AUTH` - force backend JWT fallback mode for E2E/dev checks
+
+### Test Variables
+
+- `MONGODB_URI_TEST` - MongoDB URI used by backend integration tests
+- `E2E_EMAIL` - Selenium login email override
+- `E2E_PASSWORD` - Selenium login password override
+- `BASE_URL` - k6 target base URL override (example: `http://localhost:5000`)
+- `K6_WEB_DASHBOARD` - enable k6 live local dashboard (`true`/`false`)
+- `K6_WEB_DASHBOARD_EXPORT` - export k6 HTML report filename (example: `k6-report.html`)
+
+### CI Secret
+
+- `K6_CLOUD_TOKEN` - Grafana Cloud token for `k6 run -o cloud`
