@@ -1,0 +1,28 @@
+{
+  "test": "backend-mocha",
+  "status": "passed",
+  "startedAt": "2026-04-27T14:02:29.635Z",
+  "finishedAt": "2026-04-27T14:03:00.083Z",
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-04-27T14:02:55.030Z",
+    "end": "2026-04-27T14:03:00.034Z",
+    "duration": 5004
+  },
+  "tests": [
+    {
+      "title": "API integration registers and logs in a user",
+      "duration": 1002
+    },
+    {
+      "title": "API integration performs authenticated todo CRUD flow",
+      "duration": 900
+    }
+  ],
+  "failures": [],
+  "stderr": null
+}

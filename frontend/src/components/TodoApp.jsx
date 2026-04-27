@@ -12,9 +12,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, ListTodo, LogOut, Sparkles } from "lucide-react";
+import { BarChart3, Loader2, ListTodo, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useTodos } from "../hooks/useTodos.js";
+import { TestReportsModal } from "./TestReportsModal.jsx";
 import { TodoFilters } from "./TodoFilters.jsx";
 import { SortableTodoRow } from "./SortableTodoRow.jsx";
 import { TodoRow } from "./TodoRow.jsx";
@@ -43,6 +44,7 @@ export function TodoApp({ theme, onToggleTheme, user, onLogout }) {
   const [filter, setFilter] = useState("all");
   const [title, setTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showReports, setShowReports] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -230,6 +232,14 @@ export function TodoApp({ theme, onToggleTheme, user, onLogout }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowReports(true)}
+            className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/50 bg-white/50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-700 shadow-glass backdrop-blur-xl transition hover:scale-105 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200 dark:shadow-glass-lg"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Reports
+          </button>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           <button
             data-testid="logout-button"
@@ -284,6 +294,7 @@ export function TodoApp({ theme, onToggleTheme, user, onLogout }) {
           listSection
         )}
       </section>
+      <TestReportsModal open={showReports} onClose={() => setShowReports(false)} />
     </div>
   );
 }

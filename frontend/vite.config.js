@@ -9,6 +9,7 @@ export default defineConfig({
       "/auth": { target: "http://localhost:5000", changeOrigin: true },
       "/todos": { target: "http://localhost:5000", changeOrigin: true },
       "/health": { target: "http://localhost:5000", changeOrigin: true },
+      "/reports": { target: "http://localhost:5000", changeOrigin: true },
     },
   },
 });

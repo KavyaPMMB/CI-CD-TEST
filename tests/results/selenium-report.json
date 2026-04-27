@@ -1,0 +1,68 @@
+{
+  "test": "selenium-e2e",
+  "status": "passed",
+  "startedAt": "2026-04-27T14:00:59.390Z",
+  "steps": [
+    {
+      "name": "app opened and browser storage reset",
+      "status": "passed",
+      "at": "2026-04-27T14:01:10.008Z"
+    },
+    {
+      "name": "login request submitted",
+      "status": "passed",
+      "at": "2026-04-27T14:01:14.498Z"
+    },
+    {
+      "name": "register passed (e2e_1777298459390@example.com)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:24.291Z"
+    },
+    {
+      "name": "all filter selected",
+      "status": "passed",
+      "at": "2026-04-27T14:01:24.434Z"
+    },
+    {
+      "name": "add passed (E2E task one 1777298459390)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:26.181Z"
+    },
+    {
+      "name": "add passed (E2E task two 1777298459390)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:28.298Z"
+    },
+    {
+      "name": "mark complete passed (E2E task one 1777298459390)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:28.597Z"
+    },
+    {
+      "name": "completed filter passed",
+      "status": "passed",
+      "at": "2026-04-27T14:01:28.856Z"
+    },
+    {
+      "name": "pending filter passed",
+      "status": "passed",
+      "at": "2026-04-27T14:01:29.234Z"
+    },
+    {
+      "name": "delete passed (E2E task two 1777298459390)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:29.748Z"
+    },
+    {
+      "name": "post-delete verification passed (E2E task one 1777298459390 still present)",
+      "status": "passed",
+      "at": "2026-04-27T14:01:29.771Z"
+    },
+    {
+      "name": "logout passed",
+      "status": "passed",
+      "at": "2026-04-27T14:01:30.199Z"
+    }
+  ],
+  "finishedAt": "2026-04-27T14:01:30.201Z"
+}

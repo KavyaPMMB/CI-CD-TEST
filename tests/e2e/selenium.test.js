@@ -1,6 +1,8 @@
 import { Builder, By, Key, until } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome.js";
 import "chromedriver";
+import path from "node:path";
+import { promises as fs } from "node:fs";
 
 async function run() {
   const options = new chrome.Options()
@@ -13,11 +15,22 @@ async function run() {
   const fallbackRegisterEmail = `e2e_${runId}@example.com`;
   const taskOne = `E2E task one ${runId}`;
   const taskTwo = `E2E task two ${runId}`;
+  const report = {
+    test: "selenium-e2e",
+    status: "running",
+    startedAt: new Date().toISOString(),
+    steps: [],
+  };
 
   try {
     const stepPassed = (message) => {
+      report.steps.push({
+        name: message,
+        status: "passed",
+        at: new Date().toISOString(),
+      });
       console.log(`[PASS] ${message}`);
-    }
+    };
 
     const safeClick = async (element) => {
       await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
@@ -168,8 +181,28 @@ async function run() {
     await driver.wait(until.elementLocated(By.css('[data-testid="auth-submit-button"]')), 10000);
     stepPassed("logout passed");
 
+    report.status = "passed";
     console.log("Selenium E2E passed");
+  } catch (err) {
+    report.status = "failed";
+    report.error = err?.message || "Unknown Selenium failure";
+    report.steps.push({
+      name: "scenario failed",
+      status: "failed",
+      details: report.error,
+      at: new Date().toISOString(),
+    });
+    throw err;
   } finally {
+    report.finishedAt = new Date().toISOString();
+    const reportDir = path.join(process.cwd(), "tests", "results");
+    const reportPath = path.join(reportDir, "selenium-report.json");
+    try {
+      await fs.mkdir(reportDir, { recursive: true });
+      await fs.writeFile(reportPath, JSON.stringify(report, null, 2), "utf8");
+    } catch (writeErr) {
+      console.error("Could not write Selenium report:", writeErr?.message || writeErr);
+    }
     await driver.quit();
   }
 }
