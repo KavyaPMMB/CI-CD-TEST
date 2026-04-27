@@ -3,7 +3,7 @@
 A modern full-stack Todo app built with:
 - MongoDB + Mongoose
 - Express + Node.js
-- React + Vite
+- React + Vite.
 - Tailwind CSS + Framer Motion + DnD Kit
 
 ## Features
