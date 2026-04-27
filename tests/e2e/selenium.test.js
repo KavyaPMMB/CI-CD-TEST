@@ -17,7 +17,7 @@ async function run() {
   try {
     const stepPassed = (message) => {
       console.log(`[PASS] ${message}`);
-    };
+    }
 
     const safeClick = async (element) => {
       await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
