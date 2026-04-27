@@ -136,11 +136,12 @@ async function run() {
     const allFilterBtnAgain = await driver.findElement(By.xpath("//button[.//span[contains(.,'All')]]"));
     await safeClick(allFilterBtnAgain);
     await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskTwo}')]`)), 15000);
-    const deleteButtons = await driver.findElements(By.css('button[aria-label="Delete"]'));
-    if (deleteButtons.length === 0) {
-      throw new Error("Could not find delete button for task cleanup");
-    }
-    await safeClick(deleteButtons[0]);
+    const taskTwoDeleteButton = await driver.findElement(
+      By.xpath(
+        `//*[contains(text(),'${taskTwo}')]/ancestor::*[@role='listitem'][1]//button[contains(@aria-label,'Delete')]`
+      )
+    );
+    await safeClick(taskTwoDeleteButton);
 
     // Confirm at least one e2e task still exists after delete action.
     await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskOne}')]`)), 20000);
