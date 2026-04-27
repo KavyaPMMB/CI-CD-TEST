@@ -160,4 +160,4 @@ Pipeline stages:
 - Load test
 - Deploy job gated on all checks
 
-The deploy step is intentionally a placeholder command so you can plug in your actual hosting provider deployment command.
+The deploy step is intentionally a placeholder command so you can plug in your actual hosting provider deployment command
