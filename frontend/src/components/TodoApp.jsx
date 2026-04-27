@@ -220,7 +220,7 @@ export function TodoApp({ theme, onToggleTheme, user, onLogout }) {
             MERN demo
           </p> */}
           <h1 className="font-display text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-            Focus Todos
+            Skynetclouds Todos
           </h1>
           {/* <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
             Glassmorphic UI, smooth motion, drag to reorder on the All tab, and a tiny Express API on MongoDB.

@@ -54,7 +54,7 @@ export function AuthCard({ onAuthenticated }) {
           MERN demo
         </p>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-          {isRegister ? "Create your account" : "Sign in to Focus Todos"}
+          {isRegister ? "Create your account" : "Sign in to Skynetclouds Todos"}
         </h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           {isRegister
