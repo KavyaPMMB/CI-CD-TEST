@@ -84,7 +84,17 @@ Runs integration tests against a MongoDB instance. By default it uses `mongodb:/
 npm run test:e2e
 ```
 
-Starts backend and frontend, runs a headless Chrome Selenium flow (signup/login -> add todo -> logout), then shuts down servers.
+Starts backend and frontend, runs a headless Chrome Selenium flow (login -> add todo -> logout), then shuts down servers.
+
+By default the test logs in with:
+- `e2e.user@example.com`
+- `secret123`
+
+Override via environment variables when needed:
+
+```bash
+E2E_EMAIL=your-test-user@example.com E2E_PASSWORD=your-password npm run test:e2e
+```
 
 ### Load test (k6)
 

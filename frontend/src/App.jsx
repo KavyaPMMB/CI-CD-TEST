@@ -96,6 +96,8 @@ export default function App() {
   }, [token, user]);
 
   const handleAuthenticated = ({ token: nextToken, user: nextUser }) => {
+    // Set header immediately to avoid first-request race after login.
+    setAuthToken(nextToken);
     setToken(nextToken);
     setUser(nextUser);
   };

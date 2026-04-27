@@ -7,57 +7,94 @@ async function run() {
     .addArguments("--headless=new", "--disable-gpu", "--window-size=1440,900");
 
   const driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
-  const email = `selenium_${Date.now()}@example.com`;
+  const email = process.env.E2E_EMAIL || "kavyapmmb1@gmail.com";
+  const password = process.env.E2E_PASSWORD || "Kavya@123";
+  const runId = Date.now();
+  const taskOne = `E2E task one ${runId}`;
+  const taskTwo = `E2E task two ${runId}`;
 
   try {
     await driver.get("http://localhost:5173");
+    await driver.executeScript("window.localStorage.clear(); window.sessionStorage.clear();");
+    await driver.navigate().refresh();
+    // Login-only flow: test uses a pre-created account.
+    const maybeToggle = await driver.findElements(By.css('[data-testid="auth-toggle-button"]'));
+    if (maybeToggle.length > 0) {
+      const toggleText = await maybeToggle[0].getText();
+      if (toggleText.toLowerCase().includes("already have")) {
+        await maybeToggle[0].click();
+      }
+    }
 
-    const toggleBtn = await driver.wait(
-      until.elementLocated(By.css('[data-testid="auth-toggle-button"]')),
-      15000
-    );
-    await toggleBtn.click();
-
-    await driver.findElement(By.css('[data-testid="auth-name-input"]')).sendKeys("Selenium User");
-    await driver.findElement(By.css('[data-testid="auth-email-input"]')).sendKeys(email);
-    await driver
-      .findElement(By.css('[data-testid="auth-password-input"]'))
-      .sendKeys("secret123", Key.TAB);
+    await driver.wait(until.elementLocated(By.css('[data-testid="auth-email-input"]')), 15000);
+    const emailInput = await driver.findElement(By.css('[data-testid="auth-email-input"]'));
+    await emailInput.clear();
+    await emailInput.sendKeys(email);
+    const passwordInput = await driver.findElement(By.css('[data-testid="auth-password-input"]'));
+    await passwordInput.clear();
+    await passwordInput.sendKeys(password, Key.TAB);
 
     await driver.findElement(By.css('[data-testid="auth-submit-button"]')).click();
-    let todoReady = false;
-    try {
-      await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 8000);
-      todoReady = true;
-    } catch {
-      // Some auth providers create account without immediate sign-in.
-      // Fallback: try logging in with the same credentials.
-      const maybeToggle = await driver.findElements(By.css('[data-testid="auth-toggle-button"]'));
-      if (maybeToggle.length > 0) {
-        const toggleText = await maybeToggle[0].getText();
-        if (toggleText.toLowerCase().includes("already have")) {
-          await maybeToggle[0].click();
+    await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 25000);
+
+    // Ensure deterministic starting context.
+    await driver.findElement(By.xpath("//button[.//span[contains(.,'All')]]")).click();
+
+    const addTask = async (title) => {
+      const taskXPath = By.xpath(`//*[contains(text(),'${title}')]`);
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        const input = await driver.findElement(By.css('[data-testid="todo-input"]'));
+        await input.clear();
+        await input.sendKeys(title);
+
+        const addButton = await driver.findElement(By.css('[data-testid="add-todo-button"]'));
+        await driver.executeScript("arguments[0].click();", addButton);
+        await input.sendKeys(Key.ENTER);
+
+        try {
+          await driver.wait(until.elementLocated(taskXPath), 12000);
+          return;
+        } catch {
+          if (attempt === 3) {
+            const pageText = await driver.findElement(By.tagName("body")).getText();
+            throw new Error(
+              `Task "${title}" was not added after retries. Page snapshot:\n${pageText.slice(0, 1200)}`
+            );
+          }
         }
       }
-      const emailInput = await driver.findElement(By.css('[data-testid="auth-email-input"]'));
-      await emailInput.clear();
-      await emailInput.sendKeys(email);
-      const passwordInput = await driver.findElement(By.css('[data-testid="auth-password-input"]'));
-      await passwordInput.clear();
-      await passwordInput.sendKeys("secret123");
-      await driver.findElement(By.css('[data-testid="auth-submit-button"]')).click();
-      await driver.wait(until.elementLocated(By.css('[data-testid="todo-input"]')), 25000);
-      todoReady = true;
-    }
+    };
 
-    if (!todoReady) {
-      throw new Error("Could not reach todo screen after signup/login");
-    }
-    const todoInput = await driver.findElement(By.css('[data-testid="todo-input"]'));
-    await todoInput.sendKeys("E2E task");
-    await driver.findElement(By.css('[data-testid="add-todo-button"]')).click();
+    await addTask(taskOne);
+    await addTask(taskTwo);
 
-    await driver.wait(until.elementLocated(By.xpath("//*[contains(text(),'E2E task')]")), 20000);
+    // Mark the specific task complete using its own row action.
+    const taskOneRowToggle = await driver.findElement(
+      By.xpath(
+        `//*[contains(text(),'${taskOne}')]/ancestor::*[@role='listitem'][1]//button[contains(@aria-label,'Mark')]`
+      )
+    );
+    await taskOneRowToggle.click();
+
+    // Open "Completed" filter and verify completed task is visible there.
+    await driver.findElement(By.xpath("//button[.//span[contains(.,'Completed')]]")).click();
+    await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskOne}')]`)), 15000);
+
+    // Switch to "Pending" and ensure second task remains visible.
+    await driver.findElement(By.xpath("//button[.//span[contains(.,'Pending')]]")).click();
+    await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskTwo}')]`)), 15000);
+
+    // Back to all tasks and delete one task.
+    await driver.findElement(By.xpath("//button[.//span[contains(.,'All')]]")).click();
+    await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskTwo}')]`)), 15000);
+    const deleteButtons = await driver.findElements(By.css('button[aria-label="Delete"]'));
+    if (deleteButtons.length === 0) {
+      throw new Error("Could not find delete button for task cleanup");
+    }
+    await deleteButtons[0].click();
+
+    // Confirm at least one e2e task still exists after delete action.
+    await driver.wait(until.elementLocated(By.xpath(`//*[contains(text(),'${taskOne}')]`)), 20000);
 
     await driver.findElement(By.css('[data-testid="logout-button"]')).click();
     await driver.wait(until.elementLocated(By.css('[data-testid="auth-submit-button"]')), 10000);

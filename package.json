@@ -5,13 +5,14 @@
   "scripts": {
     "test:backend": "npm --prefix backend test",
     "build:frontend": "npm --prefix frontend run build",
-    "test:e2e": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"npm --prefix backend start\" http://localhost:5000/health \"npm --prefix frontend run dev -- --host\" http://localhost:5173 \"node ./tests/e2e/selenium.test.js\"",
+    "test:e2e": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"cross-env SUPABASE_URL= npm --prefix backend start\" http://localhost:5000/health \"cross-env VITE_FORCE_BACKEND_AUTH=true npm --prefix frontend run dev -- --host\" http://localhost:5173 \"node ./tests/e2e/selenium.test.js\"",
     "test:load": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"npm --prefix backend start\" http://localhost:5000/health \"k6 run --summary-export=k6-summary.json -e BASE_URL=http://localhost:5000 ./tests/load/k6-smoke.js\"",
     "test:load:cloud": "node ./tests/scripts/ensure-clean-ports.js && start-server-and-test \"npm --prefix backend start\" http://localhost:5000/health \"k6 run -o cloud --summary-export=k6-summary.json -e BASE_URL=http://localhost:5000 ./tests/load/k6-smoke.js\"",
     "test:all": "npm run test:backend && npm run build:frontend && npm run test:e2e && npm run test:load"
   },
   "devDependencies": {
     "chromedriver": "^147.0.4",
+    "cross-env": "^10.1.0",
     "selenium-webdriver": "^4.43.0",
     "start-server-and-test": "^2.0.4",
     "wait-on": "^9.0.5"
